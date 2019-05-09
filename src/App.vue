@@ -33,7 +33,7 @@
 
           function onError (data) {
             // 定位出错
-            console.log(data);
+            // console.log(data);
             self.getLngLatLocation();
           }
         })
@@ -55,7 +55,6 @@
                 geocoder.getAddress(lnglat, function(status, result) {
                   if (status === 'complete' && result.info === 'OK') {
                     // result为对应的地理位置详细信息
-                    console.log(result);
                     let data = result.regeocode;
                     self.$store.dispatch('setLocation',data);
                     self.$store.dispatch('setAddress',data.formattedAddress);

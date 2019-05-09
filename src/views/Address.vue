@@ -3,18 +3,21 @@
         <Header :title="title" :isLeft="true"></Header>
         <div class="city_search">
             <div class="search">
-                <span class="city">
+                <span class="city" @click="$router.push('/city')">
                     {{city}}
                     <i class="fa fa-angle-down"></i>
                 </span>
                 <i class="fa fa-search"></i>
                 <input type="text" v-model="search_val" placeholder="小区/写字楼/学校等">
             </div>
-            <Location :address="address"></Location>
+            <Location @click="selectAddress()" :address="address"></Location>
         </div>
         <div class="area">
             <ul v-for="(item, index) in areaList" :key="index">
-                <li>{{item.name}}</li>
+                <li @click="selectAddress(item)">
+                    <h4>{{item.name}}</h4>
+                    <p>{{item.district}}{{item.address}}</p>
+                </li>
             </ul>
         </div>
     </div>
@@ -31,7 +34,7 @@
               city: "",
               province: "",
               search_val:"",
-              areaList: []
+              areaList: [],
           }
         },
         computed: {
@@ -53,7 +56,8 @@
                     // 实例化Autocomplete
                     var autoOptions = {
                         //city 限定城市，默认全国
-                        city: self.province
+                        city: self.city,
+                        input: "keyword"//使用联想输入的input的id
                     }
                     var autoComplete= new AMap.Autocomplete(autoOptions);
                     autoComplete.search(self.search_val, function(status, result) {
@@ -62,6 +66,17 @@
                         self.areaList = result.tips;
                     })
                 })
+            },
+            selectAddress(item){
+                if(item){
+                    // 将获取点击的地址传给$store里的setAddress
+                    this.$store.dispatch('setAddress',item.district + item.address + item.name );
+                }else {
+                    // console.log(this.address);
+                    this.$store.dispatch('setAddress',this.address);
+                }
+                //跳转至home
+                this.$router.push('/home');
             }
         },
         components: {
@@ -72,10 +87,8 @@
             // console.log(to.params.city + "test");
             next(vm => {
                 //城市
-                console.log(to);
+                // console.log(to);
                 vm.city = to.params.city;
-                //省份
-                vm.province = to.params.province;
             });
         }
     }
