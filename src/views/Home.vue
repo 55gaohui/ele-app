@@ -27,7 +27,7 @@
                         <div class="img_wrap">
                             <img :src="item.image" alt>
                         </div>
-                        <span>{{item.name}}}</span>
+                        <span>{{item.name}}</span>
                     </div>
                 </mt-swipe-item>
             </mt-swipe>
@@ -37,7 +37,7 @@
         <div class="shoplist-title">推荐商家</div>
 
         <!-- 导航 -->
-        <FilterView :filterData="filterData" @searchFixed="searchFixed"></FilterView>
+        <FilterView :filterData="filterData" @searchFixed="searchFixed" @update="update"></FilterView>
 
     </div>
 </template>
@@ -89,6 +89,9 @@
             },
             searchFixed(isShow){
                 this.showFilter = isShow;
+            },
+            update(condition){
+                console.log(condition);
             }
         },
         components: {
