@@ -62,6 +62,7 @@
                 })
             },
             getVrifyCode(){
+                // localStorage.setItem('ele_login', true);
                 //
                 if(this.validatePhone()){
                     //改变获取验证码按钮内容及样式

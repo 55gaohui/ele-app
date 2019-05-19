@@ -7,8 +7,8 @@
                 <i class="fa fa-sort-desc"></i>
             </div>
         </div>
-        <div class="search_wrap" :class="{'fixedview' : showFilter}">
-            <div class="shop_search">
+        <div class="search_wrap" :class="{'fixedview' : showFilter}" @click="$router.push('/search')">
+            <div class="shop_search" >
                 <i class="fa fa-search"></i>
                 搜索商家 商家名称
             </div>
@@ -39,12 +39,26 @@
         <!-- 导航 -->
         <FilterView :filterData="filterData" @searchFixed="searchFixed" @update="update"></FilterView>
 
+        <!-- 商家信息 -->
+        <mt-loadmore
+                :top-method="loadData"
+                :bottom-method="loadMore"
+                :auto-fill="false"
+                :bottom-all-loaded="allLoaded"
+                :bottomPullText="bottomPullText"
+                ref="loadmore">
+            <div class="shoplist">
+                <IndexShop v-for="(item, index) in restaurants" :key="index" :restaurant="item.restaurant"></IndexShop>
+            </div>
+        </mt-loadmore>
+
     </div>
 </template>
 
 <script>
-    import { Swipe, SwipeItem } from 'mint-ui';
+    import { Swipe, SwipeItem,Loadmore } from 'mint-ui';
     import FilterView from "../components/FilterView"
+    import IndexShop from "../components/IndexShop"
 
     export default {
         name: "home",
@@ -53,7 +67,14 @@
                 swipeImgs: [],
                 entries:[],
                 filterData: null,
-                showFilter: false
+                showFilter: false,
+                page: 1,         //获取商家页码
+                size: 5,           //获取商家个数
+                restaurants: [],   //存放商家列表的容器
+                bottomPullText: "上拉加载更多",
+                allLoaded: false,
+                data: null
+
             }
         },
         computed:{
@@ -82,20 +103,60 @@
                     //获取分类信息
                     this.entries = res.data.entries;
                 })
+                //获取筛选信息
                 this.$axios("/api/profile/filter").then(res => {
-                    console.log(res.data);
+                    // console.log(res.data);
                     this.filterData = res.data;
                 })
+                this.loadData();
+            },
+            loadData(){
+                this.page= 1;
+                this.allLoaded = false;
+                this.bottomPullText= "上拉加载更多";
+                //获取商家信息  这里使用post是要实现上拉加载
+                this.$axios.post(`/api/profile/restaurants/${this.page}/${this.size}`,this.data).then((res) => {
+                    this.$refs.loadmore.onTopLoaded(); //通知loadmore组件从新渲染，计算
+                    this.restaurants = res.data;
+                    // console.log(this.restaurants);
+                })
+            },
+            loadMore(){
+                if(!this.allLoaded){
+                    this.page++;
+                    this.$axios.post(`/api/profile/restaurants/${this.page}/${this.size}`,this.data).then((res) => {
+                        this.$refs.loadmore.onBottomLoaded(); //通知loadmore组件从新渲染，计算
+                        if(res.data.length > 0){
+                            //吧获取数据放入restaurants里面
+                            res.data.forEach(item =>{
+                                this.restaurants.push(item);
+                            })
+                            console.log(this.restaurants);
+                            //如果获取的数据小于每页的个数，则表示后面没有数据啦
+                            if(res.data < this.size){
+                                this.allLoaded = true;
+                                this.bottomPullText = '没有更多了哦';
+                            }
+                        }else {
+                            //数据为空
+                            this.allLoaded = true;
+                            this.bottomPullText = '没有更多了哦';
+                        }
+
+                    })
+                }
             },
             searchFixed(isShow){
                 this.showFilter = isShow;
             },
             update(condition){
-                console.log(condition);
+                this.data = condition;
+                this.loadData();
             }
         },
         components: {
-            FilterView
+            FilterView,
+            IndexShop
         }
 
     }
@@ -105,11 +166,13 @@
     .home {
         width: 100%;
         height: 100%;
+        overflow: auto;
         box-sizing: border-box;
     }
-    .header, .search_wrap{
+    .header,
+    .search_wrap {
         background-color: #009eef;
-        padding:10px 16px;
+        padding: 10px 16px;
     }
     .header .address_map {
         color: #fff;
@@ -126,28 +189,29 @@
         white-space: nowrap;
         text-overflow: ellipsis;
     }
-    .search_wrap{
-        position: sticky;
-        position: -webkit-sticky;
-        top: 0px;
-        z-index: 999;
-        box-sizing: border-box;
-    }
     .search_wrap .shop_search {
-        /*margin-top: 10px;*/
+        /* margin-top: 10px; */
         background-color: #fff;
         padding: 10px 0;
         border-radius: 4px;
         text-align: center;
         color: #aaa;
     }
-    .swiper{
+
+    .search_wrap {
+        position: sticky;
+        top: 0px;
+        z-index: 999;
+        box-sizing: border-box;
+    }
+    .swiper {
         height: 100px;
     }
-    .swiper img{
+    .swiper img {
         width: 100%;
         height: 100px;
     }
+
     .entries {
         background: #fff;
         height: 47.2vw;
@@ -175,7 +239,7 @@
         color: #666;
         font-size: 0.32rem;
     }
-    /*推荐商家*/
+    /* 推荐商家 */
     .shoplist-title {
         display: flex;
         align-items: flex;
@@ -209,7 +273,11 @@
     }
 
     .mint-loadmore {
-        height: calc(100% - 95px);
+        height: calc(100% - 95px) ;
+        padding-bottom: 95px;
         overflow: auto;
+    }
+    .mint-loadmore-bottom{
+        background: #f1f1f1;
     }
 </style>
