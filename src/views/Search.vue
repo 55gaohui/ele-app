@@ -5,28 +5,95 @@
             <form class="search_wrap">
                 <i class="fa fa-search"></i>
                 <input type="text" v-model="key_word" placeholder="输入商家,商品信息">
-                <button>搜索</button>
+                <button @click.prevent="searchHandle">搜索</button>
             </form>
+        </div>
+        <div class="shop" v-if="result && !showShop">
+            <div class="empty_wrap" v-if="empty">
+                <img src="https://fuss10.elemecdn.com/d/60/70008646170d1f654e926a2aaa3afpng.png" alt="">
+                <div class="empty_txt">
+                    <h4>附近没有搜索结果</h4>
+                    <span>换个关键词试试吧</span>
+                </div>
+            </div>
+            <div v-else>
+                <SearchIndex @listClick="shopItemClick" :data="result.restaurants"/>
+                <SearchIndex @listClick="shopItemClick" :data="result.words"/>
+            </div>
+
+        </div>
+        <div class="container" v-else>
+            <!-- 导航 -->
+            <FilterView :filterData="filterData" @update="update"></FilterView>
         </div>
     </div>
 </template>
 
 <script>
     import Header from "../components/Header"
+    import SearchIndex from  "../components/SearchIndex"
+    import FilterView from  "../components/FilterView"
     export default {
         name: "Search",
         data(){
             return{
-                key_word : ''
+                key_word : '',
+                result: null,
+                empty: false,
+                showShop: false,
+                filterData: null,
+                data: null
             }
         },
         watch: {
             key_word(){
-
+                this.empty = false;
+                this.keyWordChange();
+            }
+        },
+        methods: {
+            keyWordChange(){
+                this.$axios(`/api/profile/typeahead/${this.key_word}`)
+                    .then((res) => {
+                        this.result = res.data;
+                    })
+                    .catch((err) => {
+                        this.key_word = null;
+                    })
+            },
+            //点击搜索按钮 事件
+            searchHandle(){
+                if(!this.key_word){
+                    return;
+                }
+                if(
+                    this.result &&
+                    (this.result.restaurants.length > 0 || this.result.words.length)
+                ) {
+                    this.empty = false;
+                }else {
+                    this.empty = true;
+                }
+            },
+            //点击搜索出来的列表 事件
+            shopItemClick(){
+                console.log('1');
+                this.showShop = true;
+                //获取筛选信息
+                this.$axios("/api/profile/filter").then(res => {
+                    // console.log(res.data);
+                    this.filterData = res.data;
+                })
+            },
+            //更新列表排序
+            update(condation){
+                this.data = condation;
             }
         },
         components: {
-            Header
+            Header,
+            SearchIndex,
+            FilterView
         }
     }
 </script>

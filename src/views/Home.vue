@@ -149,6 +149,7 @@
             searchFixed(isShow){
                 this.showFilter = isShow;
             },
+            //更新列表排序
             update(condition){
                 this.data = condition;
                 this.loadData();

@@ -1,7 +1,6 @@
 module.exports = {
   presets: [
     '@vue/app',
-      // "stage-2"
-
-  ]
+  ],
+  plugins: ['@babel/plugin-syntax-dynamic-import']
 }
