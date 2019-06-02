@@ -9,7 +9,7 @@ const router = new Router({
   routes: [
     {
       path: '/',
-      name: 'index',
+      // name: 'index',
       component: ()=> import("./views/index.vue"),
       children : [
         {

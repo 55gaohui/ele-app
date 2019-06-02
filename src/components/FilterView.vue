@@ -24,7 +24,7 @@
                 <div v-for="(screen, index) in filterData.screenBy" :key="index" class="morefilter">
                     <p class="title">{{screen.title}}</p>
                     <ul>
-                        <li v-for="(item, i) in screen.data" :key="i">
+                        <li v-for="(item, i) in screen.data" :key="i" :class="{'selected': item.select}" @click="selectScreen(item,screen)">
                             <img v-if="item.icon" :src="item.icon" alt="" />
                             <span>{{item.name}}</span>
                         </li>
@@ -32,8 +32,8 @@
                 </div>
             </div>
             <div class="morefilter-btn">
-                <span class="morefilter-clear">清空</span>
-                <span class="morefilter-ok">确定</span>
+                <span class="morefilter-clear" :class="{'edit': edit}" @click="clearFilter">清空</span>
+                <span class="morefilter-ok" @click="filterOk">确定</span>
             </div>
         </section>
     </div>
@@ -52,6 +52,21 @@
         },
         props: {
             filterData : Object
+        },
+        computed: {
+            edit(){
+                let edit = false;
+                console.log(this.filterData.screenBy);
+                this.filterData.screenBy.forEach(screen => {
+                    screen.data.forEach(item => {
+                        if(item.select){
+                            edit = true;
+                        }
+                    })
+
+                })
+                return edit;
+            }
         },
         methods: {
             //点击 综合排序
@@ -98,6 +113,53 @@
 
                 // 更新数据
                 this.$emit("update", { condition: item.code });
+            },
+            //选择筛选条件
+            selectScreen(item,screen){
+                // 如果是不是多选，就先重置当前列表内 为false
+                if(screen.id !== "MPI"){
+                    screen.data.forEach(ele =>{
+                        ele.select = false;
+                    })
+                }
+                item.select = !item.select;
+            },
+            //清除所有筛选条件
+            clearFilter(){
+                this.filterData.screenBy.forEach(screen => {
+                    screen.data.forEach(item => {
+                        item.select = false;
+                    })
+
+                })
+            },
+            filterOk(){
+                let screenData= {
+                    MPI: "",
+                    offer: "",
+                    per: ""
+                };
+                let mpiStr = '';
+                this.filterData.screenBy.forEach(screen => {
+                    screen.data.forEach(item => {
+                        if(item.select){
+                            // 两种情况 1.多选 2.单选
+                            if(screen.id !== "MPI"){
+                                //单选
+                                console.log('单选');
+                                screenData[screen.id] = item.code;
+                            }else {
+                                //多选
+                                console.log('多选');
+                                mpiStr += item.code + ',';
+                                screenData[screen.id] = mpiStr;
+                            }
+                        }
+                    })
+                })
+                // console.log(screenData);
+                this.$emit('update',{ condition: screenData });
+                this.hideView();
             }
         }
     }

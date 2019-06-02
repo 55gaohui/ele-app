@@ -151,6 +151,7 @@
             },
             //更新列表排序
             update(condition){
+                console.log(condition);
                 this.data = condition;
                 this.loadData();
             }
