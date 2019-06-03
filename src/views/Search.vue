@@ -17,7 +17,7 @@
                 </div>
             </div>
             <div v-else>
-                <SearchIndex @listClick="shopItemClick" :data="result.restaurants"/>
+                <SearchIndex @listClick="$router.push('/shop')" :data="result.restaurants"/>
                 <SearchIndex @listClick="shopItemClick" :data="result.words"/>
             </div>
 
